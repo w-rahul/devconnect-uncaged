@@ -12,3 +12,82 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum Role {
+  CREATOR
+  CONTRIBUTOR
+  VIEWER
+}
+
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id              String @id @default(uuid())
+  name            String?
+  email           String @unique 
+  passwordHashed  String
+  role            Role @default(VIEWER)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  projects            Project[] @relation("UserProjects")
+  projectMembers      ProjectMember[]
+  codesumbmissions    CodeSubmission[]
+  chats               Chat[]
+
+}
+
+model Project {
+  id                String @id @default(uuid())
+  name              String
+  description       String
+  techStack         String[]
+  creatorID        String
+  creator           User @relation("UserProjects", fields: [creatorID], references: [id])
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  members           ProjectMember[]
+  submissions       CodeSubmission[]
+  chats             Chat[]
+}
+
+model ProjectMember {
+  id                String @id @default(uuid())
+  projectID         String
+  project           Project @relation(fields: [projectID], references: [id])
+  userID            String
+  user              User @relation(fields: [userID], references: [id])
+  role              Role
+  joinedAt          DateTime @default(now())
+  
+}
+
+model CodeSubmission {
+  id                String @id @default(uuid())
+  projectID         String
+  project           Project @relation(fields: [projectID], references: [id])
+  contributorID      String 
+  contributor       User @relation(fields: [contributorID], references: [id])
+  filePath          String
+  status            SubmissionStatus @default(PENDING)
+  submittedAt       DateTime  @default(now())
+  reviewedAt        DateTime?
+
+}
+
+model Chat {
+  id                String @id @default(uuid())
+  projectID         String
+  project           Project @relation(fields: [projectID], references: [id])
+  userID            String
+  user              User @relation(fields: [userID], references: [id])
+  message           String
+  createdAt         DateTime @default(now())
+
+}
+
