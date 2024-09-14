@@ -1,5 +1,5 @@
 import { Response, Request } from "express";
-import z, { string } from 'zod'
+import z from 'zod'
 import { prisma } from "../app";
 
 const createProjectSchema = z.object({
