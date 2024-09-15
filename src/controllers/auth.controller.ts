@@ -59,7 +59,9 @@ export const signup =async (req : Request , res : Response)=>{
 
     return res.status(200).json({
         message: "User created successfully",
-        NewUser,
+        Name : NewUser.name,
+        username : NewUser.username,
+        role : NewUser.role,
         token
     })
     
