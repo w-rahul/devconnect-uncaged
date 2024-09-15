@@ -71,7 +71,9 @@ export const signup =async (req : Request , res : Response)=>{
 }
 
 export const login = async (req : Request , res : Response)=>{
-    const { username, password } = req.body
+    
+    try {
+        const { username, password } = req.body
 
     const User = await prisma.user.findUnique({
         where: { username }
@@ -94,31 +96,47 @@ export const login = async (req : Request , res : Response)=>{
         message: "Login successful",
         token
     })
-}
+    
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({message : "Internal server error"})        
+    }
+    
+    }
 
 export const me = async (req : Request , res : Response)=>{
-    const userId = req.userId
+    
+    try {
+        const userId = req.userId
 
-    if (!userId) {
-        return res.status(401).json({ message: "Unauthorized" })
-    }
-
-    const User = await prisma.user.findUnique({
-        where: { id: userId },
-        select:{
-            name : true,
-            email : true,
-            username : true,
-            role : true,
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized" })
         }
-    })
-
-    if (!User) {
-        return res.status(404).json({ message: "User not found" })
+    
+        const User = await prisma.user.findUnique({
+            where: { id: userId },
+            select:{
+                name : true,
+                email : true,
+                username : true,
+                role : true,
+            }
+        })
+    
+        if (!User) {
+            return res.status(404).json({ message: "User not found" })
+        }
+    
+        return res.status(200).json({
+            message: "User details fetched successfully",
+            User
+        })    
+    } 
+    
+    catch (error) {
+        console.log(error)
+        return res.status(500).json({message : "Internal server error"})
     }
-
-    return res.status(200).json({
-        message: "User details fetched successfully",
-        User
-    })
+    
+    
 }
