@@ -3,6 +3,8 @@ import z from 'zod'
 import { prisma } from "../app"
 import { sign } from "jsonwebtoken"
 import bcrypt from 'bcrypt';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET as string
 
@@ -15,7 +17,9 @@ const SignSchema = z.object({
 })
 
 export const signup =async (req : Request , res : Response)=>{
-    const body = req.body
+
+    try {
+        const body = req.body
     const success = SignSchema.safeParse(body)
     
     if(!success.success){
@@ -24,10 +28,13 @@ export const signup =async (req : Request , res : Response)=>{
         })
     }
 
-    const UserExists = await prisma.user.findUnique({
-       where:{
-                 email: body.email
-         }
+    const UserExists = await prisma.user.findFirst({
+        where: {
+            OR: [
+              { email: body.email },
+              { username: body.username }
+            ]
+          }
     })
 
     if(UserExists){
@@ -55,7 +62,12 @@ export const signup =async (req : Request , res : Response)=>{
         NewUser,
         token
     })
-
+    
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({message : "Internal Server Error"})
+    }
+    
 }
 
 export const login = async (req : Request , res : Response)=>{
