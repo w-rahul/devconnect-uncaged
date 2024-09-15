@@ -3,10 +3,10 @@ import z from 'zod'
 import { prisma } from "../app";
 
 const createProjectSchema = z.object({
-    name : z.string().min(1),
-    description: z.string(),
-    techStack : z.array(z.string()),
-    creatorID : z.string()
+    name: z.string().min(3).max(100),
+    description: z.string().max(500),
+    techStack: z.array(z.string()).min(1).max(10)
+
 })
 
 export const createProject = async (req: Request, res: Response)=>{
