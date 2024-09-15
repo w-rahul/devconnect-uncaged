@@ -6,6 +6,7 @@ import { chat } from './routes/chat'
 import { PrismaClient } from '@prisma/client'
 import dotenv from "dotenv"
 import cloudinary from 'cloudinary';
+import { Server, Socket } from 'socket.io'
 
 dotenv.config()
 
@@ -18,8 +19,14 @@ cloudinary.v2.config({
 })
 
 const app = express()
-const PORT = 8080
+const PORT = process.env.PORT
 export const prisma = new PrismaClient()
+
+const io = new Server({
+  cors:{
+    origin : "*"
+  }
+})
 
 app.use(express.json())
 
@@ -28,6 +35,26 @@ app.use('/api/projects', projects )
 app.use('/api/code', code )
 app.use('/api/chat', chat )
 
-app.listen(PORT , ()=>{
+io.on('connection', (Socket)=>{
+  console.log('A user is connected')
+
+  Socket.on('joinProject', (projectID) =>{
+      Socket.join(projectID)
+  })
+
+  Socket.on('sendMessage', (data)=>{
+      const {projectID, message, userID } = data
+      io.to(projectID).emit('receviceMessage', {userID, message})
+  })
+
+  Socket.on('dissconnect', ()=>{
+    console.log('User disconnected')
+  })
+
+})
+
+const server = app.listen(PORT , ()=>{
     console.log(`The server is listening on ${PORT}`)
 })
+
+io.listen(server)
