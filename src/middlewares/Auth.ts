@@ -16,6 +16,7 @@ export const Authenticate = async (req: Request, res:Response, next: NextFunctio
         req.userId = decoded.id
         req.userRole = decoded.role
         next()
+        return
     } catch (error) {
             return res.status(400).json({ message: "Invalid token." })
     }
