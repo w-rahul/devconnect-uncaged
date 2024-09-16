@@ -1,4 +1,4 @@
-import { Response, Request } from "express";
+import e, { Response, Request } from "express";
 import z from 'zod'
 import { prisma } from "../app";
 
@@ -60,24 +60,33 @@ export  const AllProject = async  (req: Request, res: Response)=>{
 
 export  const ProjectbyID = async (req: Request, res: Response)=>{
 
-    const { id } = req.params
-    if (!id) return res.status(400).json({
+    const projectID = req.params.projectID
+    if (!projectID) return res.status(400).json({
          message: "Project ID is required"
      })
 
     try {
-        const project = await prisma.project.findUnique({
-             where: {
-                 id
-             }
-         })
-        if (!project) return res.status(404).json({
-             message: "Project not found" 
+        const ProjectExists = await prisma.project.findUnique({
+            where:{
+                id : projectID
+            }
         })
+        if(ProjectExists){
+            const project = await prisma.project.findUnique({
+                where:{
+                    id : projectID
+                },
+                select:{
+                    name : true,
+                    description : true,
+                    techStack : true,
+                }
+            })
+            
+            return res.status(200).json({project})
+        }
 
-        return res.status(200).json({
-             project
-        })
+        return res.status(404).json({message : "Project not found"})
     } 
     catch (error) {
         return res.status(500).json({ message: "Error fetching project" });
@@ -95,7 +104,7 @@ const updateProjectSchema = z.object({
 
 export  const UpdateProjectbyID = async (req: Request, res: Response)=>{
 
-    const { id } = req.params;
+    const projectID = req.params.projectID
     const body = req.body;
 
     const result = updateProjectSchema.safeParse(body);
@@ -108,7 +117,7 @@ export  const UpdateProjectbyID = async (req: Request, res: Response)=>{
 
         const projectExists = await prisma.project.findUnique({
              where: {
-                 id
+                id : projectID
             }
          })
         if (!projectExists) {
@@ -116,27 +125,27 @@ export  const UpdateProjectbyID = async (req: Request, res: Response)=>{
         }
 
         const updatedProject = await prisma.project.update({
-            where: { id },
+            where: { id : projectID },
             data: body,
         })
 
         return res.status(200).json({ project: updatedProject })
 
     } catch (error) {
-
+        console.log(error)
         return res.status(500).json({ message: "Internal server error" });
     }
 }
 
 export  const DeleteProjectbyID =async (req: Request, res: Response)=>{
 
-    const { id } = req.params;
+    const { projectID } = req.params;
 
     try {
 
         const projectExists = await prisma.project.findUnique({
              where: {
-                 id 
+                 id : projectID
             } 
         })
         if (!projectExists) {
@@ -145,14 +154,14 @@ export  const DeleteProjectbyID =async (req: Request, res: Response)=>{
 
         await prisma.project.delete({
              where: {
-                 id
+                 id : projectID
             }
         })
 
         return res.status(200).json({ message: "Project deleted successfully" });
 
     } catch (error) {
-
+        console.log(error)
         return res.status(500).json({ message: "Internal server error" });
     }
 }
