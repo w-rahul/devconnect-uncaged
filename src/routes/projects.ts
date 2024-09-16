@@ -18,7 +18,7 @@ projects.put('/:projectID', Authenticate, OwnershipCheck , UpdateProjectbyID )
 
 projects.delete('/:projectID', Authenticate, OwnershipCheck, DeleteProjectbyID )
 
-// Project Members
+// Add and Delete Project Members (It has seperate controller for Addeing/Deleting member)
 
 projects.post('/:projectID/members', Authenticate, AddMember )
 
